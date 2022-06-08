@@ -1,7 +1,11 @@
 import { v4 as uuid } from 'uuid';
+import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import dotenv from "dotenv";
 
 import connection from ".././database.js";
+
+dotenv.config();
 
 export async function postSignUp(req,res) {
 
@@ -22,19 +26,26 @@ export async function postSignUp(req,res) {
 }
 
 export async function postSignIn(req,res) {
-    
+
     try{
-        const  users = await connection.query(`SELECT users.email, users.password FROM users WHERE email=$1`, [req.body.email]);
-        console.log("Usuários do banco", users.rowCount);
+        const  users = await connection.query(`SELECT * FROM users WHERE email=$1`, [req.body.email]);
+        //console.log("Usuários do banco", users.rowCount);
         if(users.rowCount == 0){
             return res.status(401).send("Usuário não cadastrado");
         }
 
         if(bcrypt.compareSync(req.body.password, users.rows[0].password)){
-            const token = uuid();
-            //TODO: COLOCAR ISSO NA TABELA DE SESSÃO
-            console.log(token)
-            return res.status(200).send(`Usuário cadastrado. Entra aew, ${req.body.email}`)
+
+            const data = {
+                id: users.rows[0].id,
+                name: users.rows[0].name,
+            }
+            const secretKey = process.env.JWT_SECRET;
+            const token = jwt.sign(data, secretKey);
+
+            await connection.query(`INSERT INTO sessions (token, "userId") VALUES ($1, $2)`, [token, users.rows[0].id])
+            //console.log(token)
+            return res.status(200).send(token);
         }
 
         res.status(401).send("Usuário não cadastrado");

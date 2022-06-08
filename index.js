@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRouter from "./Routers/authRouter.js";
+import urlsRouter from "./Routers/urlsRouter.js";
 
 dotenv.config();
 
@@ -12,7 +13,7 @@ app.use(cors());
 
 app.use(authRouter);
 
-//app.use(gamesRouter);
+app.use(urlsRouter);
 
 //app.use(customerRouter);
 
