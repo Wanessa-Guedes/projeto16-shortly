@@ -31,7 +31,7 @@ export async function postSignIn(req,res) {
         const  users = await connection.query(`SELECT * FROM users WHERE email=$1`, [req.body.email]);
         //console.log("Usuários do banco", users.rowCount);
         if(users.rowCount == 0){
-            return res.status(401).send("Usuário não cadastrado");
+            return res.status(401);
         }
 
         if(bcrypt.compareSync(req.body.password, users.rows[0].password)){

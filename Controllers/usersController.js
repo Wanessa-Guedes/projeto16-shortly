@@ -1,4 +1,8 @@
 import connection from ".././database.js";
+import jwt from 'jsonwebtoken';
+import dotenv from "dotenv";
+
+dotenv.config();
 
 //TODO: GET /users/:id
 export async function getUsers(req,res){
@@ -6,8 +10,23 @@ export async function getUsers(req,res){
     if(isNaN(req.params.id)){
         return res.status(422).send("Parametro incorreto");
     }
+    const authorization = req.headers.authorization;
+    const token = authorization?.replace("Bearer ", "").trim();
+
+    if(!token){
+        return res.status(401).send(`Nenhum token enviado`);
+    }
+
+    const secretKey = process.env.JWT_SECRET;
+    const userInfo = jwt.verify(token, secretKey);
+    delete userInfo.iat;
 
     try{
+        const userAuthorized = await connection.query(`SELECT * FROM sessions WHERE "token"=$1 and 
+                                                        "userId"=$2`, [token, parseInt(req.params.id)]);
+        if(userAuthorized.rowCount == 0){
+            return res.status(401).send(`Token não cadastrado ou não pertence ao usuário`);
+        }
 
         const isUser = await connection.query(`SELECT * FROM users WHERE id=$1`, [parseInt(req.params.id)])
         if(isUser.rowCount == 0){
@@ -25,7 +44,7 @@ export async function getUsers(req,res){
                                                 urls."shortUrl", urls.url, urls.visualization as "visitCount" 
                                                 FROM urls WHERE "userId"=$1`, [parseInt(req.params.id)]);
         if(userGeneralInfo.rowCount != 0 && userInfo.rowCount != 0){
-            const info = {...userGeneralInfo.rows, "shortenedUrls": userInfo.rows}; 
+            const info = {...userGeneralInfo.rows[0], "shortenedUrls": userInfo.rows}; 
             return res.status(200).send(info);
         } else {
             const info = {id: isUser.rows[0].id, name: isUser.rows[0].name, visitCount: 0, shortenedUrls: []}; 
@@ -38,7 +57,7 @@ export async function getUsers(req,res){
     }
 }
 
-//TODO: GET /users/ranking
+//TODO: GET /ranking
 
 export async function getRank(req,res){
     try{
@@ -46,7 +65,7 @@ export async function getRank(req,res){
                                                 COUNT(url) as "linksCount",
                                                 SUM(visualization) as "visitCount"
                                                 FROM users
-                                                JOIN urls ON urls."userId"=users.id
+                                                LEFT JOIN urls ON urls."userId"=users.id
                                                 GROUP BY "userId", name
                                                 ORDER BY "visitCount" DESC
                                                 LIMIT 10`);

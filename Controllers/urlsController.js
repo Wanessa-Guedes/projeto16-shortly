@@ -20,10 +20,11 @@ export async function postUrls(req,res){
     delete userInfo.iat;
 
     try{
-        
-        const userAuthorized = await connection.query(`SELECT * FROM sessions WHERE "token"=$1`, [token]);
+
+        const userAuthorized = await connection.query(`SELECT * FROM sessions WHERE "token"=$1 and 
+                                                        "userId"=$2`, [token, parseInt(userInfo.id)]);
         if(userAuthorized.rowCount == 0){
-            return res.status(401).send(`Token não cadastrado`);
+            return res.status(401).send(`Token não cadastrado ou não pertence ao usuário`);
         } 
         
         const shortlyUrl = nanoid(8);
@@ -41,6 +42,10 @@ export async function postUrls(req,res){
 //TODO: GET /urls/:id
 export async function getUrls(req,res){
 
+    if(isNaN(req.params.id)){
+        return res.status(422).send("Parametro incorreto");
+    }
+
     try{
         const urlInfo = await connection.query(`SELECT urls.id, urls."shortUrl", urls.url FROM urls 
         WHERE urls.id=$1`, [parseInt(req.params.id)]);
@@ -56,6 +61,10 @@ export async function getUrls(req,res){
 //TODO: GET /urls/open/:shortUrl
 export async function getShortUrl(req,res){
 
+    if(!req.params.shortUrl){
+        return res.status(422).send("Parametro incorreto");
+    } 
+    
     try{
         const url = await connection.query(`SELECT urls.url FROM urls WHERE urls."shortUrl"=$1`, [req.params.shortUrl]);
         if(url.rowCount == 0){
@@ -63,6 +72,7 @@ export async function getShortUrl(req,res){
         }
         await connection.query(`UPDATE urls SET visualization = visualization + 1 
                                 WHERE urls."shortUrl"=$1`, [req.params.shortUrl]);
+        console.log(url.rows[0].url)
         //TODO: MOSTRAR O ERRO AO TUTOR
         res.redirect(url.rows[0].url);
     } catch (e){
@@ -72,6 +82,11 @@ export async function getShortUrl(req,res){
 }
 //TODO: DELETE /urls/:id
 export async function deleteUrl(req,res){
+    
+    if(isNaN(req.params.id)){
+        return res.status(422).send("Parametro incorreto");
+    }
+
     const authorization = req.headers.authorization;
     const token = authorization?.replace("Bearer ", "").trim();
 
@@ -85,9 +100,10 @@ export async function deleteUrl(req,res){
 
     try{
         
-        const userAuthorized = await connection.query(`SELECT * FROM sessions WHERE "token"=$1`, [token]);
+        const userAuthorized = await connection.query(`SELECT * FROM sessions WHERE "token"=$1 and 
+                                                        "userId"=$2`, [token, parseInt(req.params.id)]);
         if(userAuthorized.rowCount == 0){
-            return res.status(401).send(`Token não cadastrado`);
+            return res.status(401).send(`Token não cadastrado ou não pertence ao usuário`);
         } 
         const urlUser = await connection.query(`SELECT * FROM urls WHERE id=$1`, [parseInt(req.params.id)])
         if(urlUser.rowCount == 0){
@@ -106,3 +122,4 @@ export async function deleteUrl(req,res){
         res.status(422).send("Ocorreu um erro na rota de deleteUrl");
     }
 }
+
