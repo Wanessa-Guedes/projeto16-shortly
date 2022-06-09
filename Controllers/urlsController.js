@@ -25,7 +25,7 @@ export async function postUrls(req,res){
             return res.status(401).send(`Token não cadastrado`);
         } 
         
-        const shortlyUrl = nanoid(6);
+        const shortlyUrl = nanoid(8);
         console.log(`Teste da url encurtada`, shortlyUrl);
         await connection.query(`INSERT INTO urls ("userId", url, "shortUrl") VALUES ($1,$2,$3)`,
                                 [userInfo.id, req.body.url, shortlyUrl]);
@@ -38,5 +38,19 @@ export async function postUrls(req,res){
 }
 
 //TODO: GET /urls/:id
+export async function getUrls(req,res){
+
+    try{
+        const urlInfo = await connection.query(`SELECT urls.id, urls."shortUrl", urls.url FROM urls 
+        WHERE urls.id=$1`, [parseInt(req.params.id)]);
+        if(urlInfo.rowCount == 0){
+            return res.status(404);
+        }
+        res.status(200).send(urlInfo.rows);
+    }catch (e){
+        console.log(e);
+        res.status(422).send("Ocorreu um erro na rota de postUrls");
+    }
+}
 //TODO: GET /urls/open/:shortUrl
 //TODO: DELETE /urls/:id

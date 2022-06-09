@@ -1,9 +1,10 @@
 import { Router } from "express";
 
-import {postUrls} from "../Controllers/urlsController.js";
+import {getUrls, postUrls} from "../Controllers/urlsController.js";
 
 const urlsRouter = Router();
 
 urlsRouter.post("/urls/shorten", postUrls);
+urlsRouter.get("/urls/:id", getUrls);
 
 export default urlsRouter;
