@@ -45,7 +45,7 @@ export async function getUrls(req,res){
         const urlInfo = await connection.query(`SELECT urls.id, urls."shortUrl", urls.url FROM urls 
         WHERE urls.id=$1`, [parseInt(req.params.id)]);
         if(urlInfo.rowCount == 0){
-            return res.status(404);
+            return res.sendStatus(404);
         }
         res.status(200).send(urlInfo.rows);
     }catch (e){

@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 
 import authRouter from "./Routers/authRouter.js";
 import urlsRouter from "./Routers/urlsRouter.js";
+import usersRouter from "./Routers/usersRouter.js";
 
 dotenv.config();
 
@@ -15,9 +16,7 @@ app.use(authRouter);
 
 app.use(urlsRouter);
 
-//app.use(customerRouter);
-
-//app.use(rentalsRouter);
+app.use(usersRouter);
 
 const PORTA = process.env.PORT || 4000;
 app.listen(PORTA, () => {
