@@ -28,7 +28,7 @@ export async function postSignIn(req,res) {
 
     try{
         const  users = await connection.query(`SELECT * FROM users WHERE email=$1`, [req.body.email]);
-        //console.log("Usuários do banco", users.rowCount);
+        console.log("Usuários do banco", users.rowCount);
         if(users.rowCount == 0){
             return res.sendStatus(401);
         }
