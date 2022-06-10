@@ -1,4 +1,3 @@
-import { v4 as uuid } from 'uuid';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import dotenv from "dotenv";
@@ -21,7 +20,7 @@ export async function postSignUp(req,res) {
         res.sendStatus(201);
     } catch (e) {
         console.log(e);
-        res.status(422).send("Ocorreu um erro ao obter os usuários");
+        res.status(500).send("Ocorreu um erro ao obter os usuários");
     }
 }
 
@@ -31,7 +30,7 @@ export async function postSignIn(req,res) {
         const  users = await connection.query(`SELECT * FROM users WHERE email=$1`, [req.body.email]);
         //console.log("Usuários do banco", users.rowCount);
         if(users.rowCount == 0){
-            return res.status(401);
+            return res.sendStatus(401);
         }
 
         if(bcrypt.compareSync(req.body.password, users.rows[0].password)){
@@ -48,10 +47,10 @@ export async function postSignIn(req,res) {
             return res.status(200).send(token);
         }
 
-        res.status(401).send("Usuário não cadastrado");
+        res.sendStatus(401);
 
     } catch (e) {
         console.log(e);
-        res.status(422).send("Ocorreu um erro na rota de sign in");
+        res.status(500).send("Ocorreu um erro na rota de sign in");
     }
 }

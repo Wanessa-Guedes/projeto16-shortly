@@ -14,7 +14,7 @@ export async function postUrls(req,res){
     const token = authorization?.replace("Bearer ", "").trim();
 
     if(!token){
-        return res.status(401).send(`Nenhum token enviado`);
+        return res.sendStatus(401);
     }
 
     const secretKey = process.env.JWT_SECRET;
@@ -26,7 +26,7 @@ export async function postUrls(req,res){
     }); 
 
     if(error){
-        return res.status(401).send("Token inválido!");
+        return res.sendStatus(401);
     } else {
         userInfo = jwt.verify(token, secretKey);
     }
@@ -37,7 +37,7 @@ export async function postUrls(req,res){
         const userAuthorized = await connection.query(`SELECT * FROM sessions WHERE "token"=$1 and 
                                                         "userId"=$2`, [token, parseInt(userInfo.id)]);
         if(userAuthorized.rowCount == 0){
-            return res.status(401).send(`Token não cadastrado ou não pertence ao usuário`);
+            return res.sendStatus(401);
         } 
         
         const shortlyUrl = nanoid(8);
@@ -48,7 +48,7 @@ export async function postUrls(req,res){
 
     } catch (e){
         console.log(e);
-        res.status(422).send("Ocorreu um erro na rota de postUrls");
+        res.status(500).send("Ocorreu um erro na rota de postUrls");
     }
 }
 
@@ -56,7 +56,7 @@ export async function postUrls(req,res){
 export async function getUrls(req,res){
 
     if(isNaN(req.params.id)){
-        return res.status(422).send("Parametro incorreto");
+        return res.sendStatus(422);
     }
 
     try{
@@ -68,29 +68,28 @@ export async function getUrls(req,res){
         res.status(200).send(urlInfo.rows);
     }catch (e){
         console.log(e);
-        res.status(422).send("Ocorreu um erro na rota de getUrls");
+        res.status(500).send("Ocorreu um erro na rota de getUrls");
     }
 }
 //TODO: GET /urls/open/:shortUrl
 export async function getShortUrl(req,res){
 
     if(!req.params.shortUrl){
-        return res.status(422).send("Parametro incorreto");
+        return res.sendStatus(422);
     } 
     
     try{
         const url = await connection.query(`SELECT urls.url FROM urls WHERE urls."shortUrl"=$1`, [req.params.shortUrl]);
         if(url.rowCount == 0){
-            return res.status(404).send('URL encurtada não existe');
+            return res.status(404);
         }
         await connection.query(`UPDATE urls SET visualization = visualization + 1 
                                 WHERE urls."shortUrl"=$1`, [req.params.shortUrl]);
-        console.log(url.rows[0].url)
         //TODO: MOSTRAR O ERRO AO TUTOR
         res.redirect(url.rows[0].url);
     } catch (e){
         console.log(e);
-        res.status(422).send("Ocorreu um erro na rota de getShortUrl"); 
+        res.status(500).send("Ocorreu um erro na rota de getShortUrl"); 
     }
 }
 //TODO: DELETE /urls/:id
@@ -99,7 +98,7 @@ export async function deleteUrl(req,res){
     let error = null;
     
     if(isNaN(req.params.id)){
-        return res.status(422).send("Parametro incorreto");
+        return res.sendStatus(422);
     }
 
     const authorization = req.headers.authorization;
@@ -118,7 +117,7 @@ export async function deleteUrl(req,res){
     }); 
 
     if(error){
-        return res.status(401).send("Token inválido!");
+        return res.sendStatus(401);
     } else {
         userInfo = jwt.verify(token, secretKey);
     }
@@ -128,23 +127,21 @@ export async function deleteUrl(req,res){
         const userAuthorized = await connection.query(`SELECT * FROM sessions WHERE "token"=$1 and 
                                                         "userId"=$2`, [token, parseInt(userInfo.id)]);
         if(userAuthorized.rowCount == 0){
-            return res.status(401).send(`Token não cadastrado ou não pertence ao usuário`);
+            return res.sendStatus(401);
         } 
         const urlUser = await connection.query(`SELECT * FROM urls WHERE id=$1`, [parseInt(req.params.id)])
         if(urlUser.rowCount == 0){
-            return res.status(404).send(`Url não existe`);
+            return res.sendStatus(404);
         }
-        console.log(urlUser.rows[0].userId)
-        console.log(userAuthorized.rows[0].userId)
         if(urlUser.rows[0].userId != userAuthorized.rows[0].userId){
-            return res.status(401).send(`Usuário não tem permissão para deletar essa URL`);
+            return res.sendStatus(401);
         }
         await connection.query(`DELETE FROM urls WHERE urls.id=$1`, [parseInt(req.params.id)]);
         res.sendStatus(204);
 
     } catch (e){
         console.log(e);
-        res.status(422).send("Ocorreu um erro na rota de deleteUrl");
+        res.status(500).send("Ocorreu um erro na rota de deleteUrl");
     }
 }
 

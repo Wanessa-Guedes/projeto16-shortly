@@ -10,13 +10,13 @@ export async function getUsers(req,res){
     let error = null;
 
     if(isNaN(req.params.id)){
-        return res.status(422).send("Parametro incorreto");
+        return res.sendStatus(422);
     }
     const authorization = req.headers.authorization;
     const token = authorization?.replace("Bearer ", "").trim();
 
     if(!token){
-        return res.status(401).send(`Nenhum token enviado`);
+        return res.sendStatus(401);
     }
 
     const secretKey = process.env.JWT_SECRET;
@@ -28,7 +28,7 @@ export async function getUsers(req,res){
     }); 
 
     if(error){
-        return res.status(401).send("Token inválido!");
+        return res.sendStatus(401);
     } else {
         userInfoToken = jwt.verify(token, secretKey);
     }
@@ -38,7 +38,7 @@ export async function getUsers(req,res){
         const userAuthorized = await connection.query(`SELECT * FROM sessions WHERE "token"=$1 and 
                                                         "userId"=$2`, [token, parseInt(req.params.id)]);
         if(userAuthorized.rowCount == 0){
-            return res.status(401).send(`Token não cadastrado ou não pertence ao usuário`);
+            return res.sendStatus(401);
         }
 
         const isUser = await connection.query(`SELECT * FROM users WHERE id=$1`, [parseInt(userInfoToken.id)])
@@ -66,7 +66,7 @@ export async function getUsers(req,res){
         
     } catch(e){
         console.log(e);
-        res.status(422).send("Ocorreu um erro na rota get Users");
+        res.status(500).send("Ocorreu um erro na rota get Users");
     }
 }
 
@@ -88,6 +88,6 @@ export async function getRank(req,res){
         res.status(200).send(ranking.rows); 
     } catch (e){
         console.log(e);
-        res.status(422).send("Ocorreu um erro na rota get Users Rank");
+        res.status(500).send("Ocorreu um erro na rota get Users Rank");
     }
 }
