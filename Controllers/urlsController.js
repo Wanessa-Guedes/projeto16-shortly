@@ -65,7 +65,7 @@ export async function getUrls(req,res){
         if(urlInfo.rowCount == 0){
             return res.sendStatus(404);
         }
-        res.status(200).send(urlInfo.rows);
+        res.status(200).send({...urlInfo.rows[0]});
     }catch (e){
         console.log(e);
         res.status(500).send("Ocorreu um erro na rota de getUrls");
