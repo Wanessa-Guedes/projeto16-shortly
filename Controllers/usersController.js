@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-//TODO: GET /users/:id
+
 export async function getUsers(req,res){
 
     let error = null;
@@ -70,7 +70,6 @@ export async function getUsers(req,res){
     }
 }
 
-//TODO: GET /ranking
 
 export async function getRank(req,res){
     try{

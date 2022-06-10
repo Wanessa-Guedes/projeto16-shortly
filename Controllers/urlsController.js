@@ -52,7 +52,7 @@ export async function postUrls(req,res){
     }
 }
 
-//TODO: GET /urls/:id
+
 export async function getUrls(req,res){
 
     if(isNaN(req.params.id)){
@@ -71,7 +71,7 @@ export async function getUrls(req,res){
         res.status(500).send("Ocorreu um erro na rota de getUrls");
     }
 }
-//TODO: GET /urls/open/:shortUrl
+
 export async function getShortUrl(req,res){
 
     if(!req.params.shortUrl){
@@ -85,14 +85,13 @@ export async function getShortUrl(req,res){
         }
         await connection.query(`UPDATE urls SET visualization = visualization + 1 
                                 WHERE urls."shortUrl"=$1`, [req.params.shortUrl]);
-        //TODO: MOSTRAR O ERRO AO TUTOR
         res.redirect(url.rows[0].url);
     } catch (e){
         console.log(e);
         res.status(500).send("Ocorreu um erro na rota de getShortUrl"); 
     }
 }
-//TODO: DELETE /urls/:id
+
 export async function deleteUrl(req,res){
 
     let error = null;

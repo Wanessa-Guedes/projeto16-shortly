@@ -16,7 +16,6 @@ export async function postSignUp(req,res) {
         }
         await connection.query(`INSERT INTO users (name, email, password)
                                                 VALUES ($1, $2, $3)`, [req.body.name, req.body.email, passwordHash]);
-        //console.log("Usuários do banco", users.rows);
         res.sendStatus(201);
     } catch (e) {
         console.log(e);
@@ -43,7 +42,6 @@ export async function postSignIn(req,res) {
             const token = jwt.sign(data, secretKey);
 
             await connection.query(`INSERT INTO sessions (token, "userId") VALUES ($1, $2)`, [token, users.rows[0].id])
-            //console.log(token)
             return res.status(200).send(token);
         }
 
